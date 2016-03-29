@@ -1,3 +1,3 @@
 #!/bin/bash
-g++ -o ~/bin/ioperf main.cpp server.cpp client.cpp writer.cpp reader.cpp \
+g++ -o ioperf main.cpp server.cpp client.cpp writer.cpp reader.cpp \
     -O3 -std=c++0x -W -Wall -Wshadow -Wpointer-arith -pedantic-errors
