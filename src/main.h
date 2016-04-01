@@ -22,11 +22,12 @@ struct Args {
 	bool udp;
 	unsigned int chunkSize;
 	unsigned int port;
+	float sentGig;
 	std::string filename;
 	std::string hostname;
 	Args() : success(true),
 	         server(false), client(false), writer(false), reader(false), verify(false),
-	         udp(false), chunkSize(8000), port(7001),
+	         udp(false), chunkSize(8000), port(7001), sentGig(1),
 	         filename(""), hostname("")
 	         {}
 };

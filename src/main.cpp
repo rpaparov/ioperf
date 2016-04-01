@@ -3,7 +3,7 @@
 
 void startServerTcp(unsigned int port, std::string filename, unsigned int chunkSize);
 void startServerUdp(unsigned int port, std::string filename, unsigned int chunkSize);
-void startClient(std::string host, unsigned int port, unsigned int chunkSize, bool isUdp);
+void startClient(std::string host, unsigned int port, unsigned int chunkSize, double sentGig, bool isUdp);
 void startWriter(std::string filename, unsigned int chunkSize);
 void startReader(std::string filename, unsigned int chunkSize, bool verify);
 void printUsage(char* prog);
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 			usleep(1000);
 		}
 	} else if (args.client) {
-		startClient(args.hostname, args.port, args.chunkSize, args.udp);
+		startClient(args.hostname, args.port, args.chunkSize, args.sentGig, args.udp);
 	} else if (args.writer) {
 		startWriter(args.filename, args.chunkSize);
 	} else {
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
 void printUsage(char* prog)
 {
-	std::string opt = "[-s|-c HOST|-w|-r] [-p PORT] [-n KBYTES] [-f PATH] [-hv]";
+	std::string opt = "[-s|-c HOST|-w|-r] [-p PORT] [-n BYTES] [-g GBYTES] [-f PATH] [-hv]";
 	std::cerr << "Usage: " << prog << " " << opt << std::endl;
 	std::cerr << "Test TCP/UDP and/or disk transfer rate." << std::endl;
 	std::cerr << std::endl;
@@ -56,6 +56,7 @@ void printUsage(char* prog)
 	std::cerr << "  -h            show this help and exit" << std::endl;
 	std::cerr << "  -n BYTES      size of the transferred/read/written data" << std::endl;
 	std::cerr << "                chunks, in bytes" << std::endl;
+	std::cerr << "  -g GIGABYTES  size of total tranfered data, in GB (default 1)" << std::endl;
 	std::cerr << std::endl;
 	std::cerr << "Server, writer and reader options:" << std::endl;
 	std::cerr << "  -f PATH       path to file, mandatory for writer and" << std::endl;
@@ -75,7 +76,7 @@ Args readArguments(int argc, char** argv)
 	Args args;
 
 	int opt;
-	while ((opt = getopt(argc, argv, "hvswruc:n:f:p:")) != -1) {
+	while ((opt = getopt(argc, argv, "hvswruc:n:f:p:g:")) != -1) {
 		switch (opt) {
 			case 's':
 				args.server = true;
@@ -104,6 +105,9 @@ Args readArguments(int argc, char** argv)
 				break;
 			case 'f':
 				args.filename = optarg;
+				break;
+			case 'g':
+				args.sentGig = atof(optarg);
 				break;
 			default:
 				args.success = false;

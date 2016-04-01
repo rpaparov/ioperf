@@ -3,21 +3,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <iostream>
 #include <vector>
 #include <string>
 #include <chrono>
+#include <cstdint>
 #include "main.h"
-
-
-
-//#include <errno.h>
-//#include <string.h>
-//#include <unistd.h>
-#include <netdb.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-
 
 
 /**
@@ -78,8 +70,8 @@ void startServerTcp(unsigned int port, std::string filename, unsigned int chunkS
 	}
 
 	std::vector<unsigned char> buffer(chunkSize);
-	size_t readBytes = 0;
-	size_t writeBytes = 0;
+	uint64_t readBytes = 0;
+	uint64_t writeBytes = 0;
 
 	bool doLoop = true;
 	while (doLoop) {

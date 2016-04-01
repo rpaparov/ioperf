@@ -17,7 +17,7 @@
  * @param chunkSize Size of the small chunks of written data, in bytes.
  * @param isUdp Set to true to use UDP instead of TCP.
  */
-void startClient(std::string host, unsigned int port, unsigned int chunkSize, bool isUdp)
+void startClient(std::string host, unsigned int port, unsigned int chunkSize, double sentGig, bool isUdp)
 {
 	int type = (isUdp) ? SOCK_DGRAM : SOCK_STREAM;
 	int sockfd = socket(AF_INET, type, 0);
@@ -43,7 +43,7 @@ void startClient(std::string host, unsigned int port, unsigned int chunkSize, bo
 		return;
 	}
 
-	const size_t nBlocks = TRANSFER_SIZE / chunkSize;
+	const size_t nBlocks = sentGig * (TRANSFER_SIZE / chunkSize);
 	std::vector<unsigned char> buffer(chunkSize);
 	
 	for (size_t i = 0; i < chunkSize; i++) {
@@ -98,7 +98,7 @@ void startClient(std::string host, unsigned int port, unsigned int chunkSize, bo
 	double duration = std::chrono::duration<double, std::milli>(diff).count();
 	float writeMB = writeBytes / (1000 * 1000);
 	float rate = writeMB / (duration / 1000.0);
-	unsigned long lostBytes = TRANSFER_SIZE - writeBytes;
+	unsigned long lostBytes = (sentGig * TRANSFER_SIZE) - writeBytes;
 	std::cout << "written " << writeMB << " Mbytes in "
 	          << duration / 1000 << " s, "
 	          << rate << " MB/s, " << rate * 8 << " Mb/s"
