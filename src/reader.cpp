@@ -2,6 +2,7 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <cstdint>
 #include "main.h"
 
 
@@ -12,13 +13,11 @@
  */
 void startReader(std::string filename, unsigned int chunkSize, bool verify)
 {
-
-	const size_t nBlocks = TRANSFER_SIZE / chunkSize;
-	std::vector<unsigned char> v(chunkSize, 0);
-	std::vector<unsigned char> vv(chunkSize);
+	std::vector<unsigned char> buffer(chunkSize);
+	std::vector<unsigned char> refBuffer(chunkSize);
 
 	for (size_t i = 0; i < chunkSize; i++) {
-		vv[i] = i % DATA_MODULO;
+		refBuffer[i] = i % DATA_MODULO;
 	}
 
 	auto start = std::chrono::system_clock::now();
@@ -27,13 +26,17 @@ void startReader(std::string filename, unsigned int chunkSize, bool verify)
 		std::cerr << "ERROR opening input file [" << filename << "]" << std::endl;
 		return;
 	}
-	size_t readBytes = 0;
-	size_t foundErrors = 0;
-	for (unsigned long i = 0; i < nBlocks; i++) {
-		size_t n = fread(v.data(), sizeof(unsigned char), v.size(), fp);
+	uint64_t readBytes = 0;
+	uint64_t foundErrors = 0;
+	bool doLoop = true;
+	while (doLoop) {
+		size_t n = fread(buffer.data(), sizeof(unsigned char), buffer.size(), fp);
 		readBytes += n;
 		if (verify) {
-			foundErrors += !std::equal(v.begin(), v.begin() + n, vv.begin());
+			foundErrors += !std::equal(buffer.begin(), buffer.begin() + n, refBuffer.begin());
+		}
+		if (n < buffer.size()) {
+			doLoop = false;
 		}
 	}
 	fclose(fp);
@@ -41,10 +44,10 @@ void startReader(std::string filename, unsigned int chunkSize, bool verify)
 
 	auto diff = end - start;
 	double duration = std::chrono::duration<double>(diff).count();
-	float readMB = readBytes / (1000 * 1000);
-	float rate = readMB / duration;
+	double readMB = readBytes / (1000 * 1000);
+	double rate = readMB / duration;
 	std::string job = (verify) ? "verified" : "read";
-	std::cout << job << " " << readMB << " Mbytes in " << duration << " s, "
+	std::cout << job << " " << readMB << " MB in " << duration << " s, "
 	          << rate << " MB/s, " << rate * 8 << " Mb/s" << std::endl;
 
 	if (foundErrors > 0) {

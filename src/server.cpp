@@ -3,7 +3,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -25,7 +24,7 @@ void startServerTcp(unsigned int port, std::string filename, unsigned int chunkS
 		std::cerr << "ERROR opening TCP socket" << std::endl;
 		return;
 	}
-	
+
 	int enable = 1;
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
 		std::cerr << "ERROR while setting socket options" << std::endl;
@@ -51,12 +50,8 @@ void startServerTcp(unsigned int port, std::string filename, unsigned int chunkS
 		return;
 	}
 
-	char addressBuffer[INET6_ADDRSTRLEN];
-	int err = getnameinfo((struct sockaddr*)&cli_addr, clilen, addressBuffer, sizeof(addressBuffer), 0, 0, NI_NUMERICHOST);
-	if (err != 0) {
-		snprintf(addressBuffer, sizeof(addressBuffer), "invalid address");
-	}
-	std::cerr << "accepted connection, client is " << addressBuffer << std::endl;
+	std::cerr << "accepted connection, client is " << inet_ntoa(cli_addr.sin_addr) << ":"
+	          << ntohs(cli_addr.sin_port) << std::endl;
 
 	auto start = std::chrono::system_clock::now();
 
@@ -101,12 +96,11 @@ void startServerTcp(unsigned int port, std::string filename, unsigned int chunkS
 	auto end = std::chrono::system_clock::now();
 
 	auto diff = end - start;
-	double duration = std::chrono::duration<double, std::milli>(diff).count();
-	float readMB = readBytes / (1000 * 1000);
-	float writeMB = writeBytes / (1000 * 1000);
-	float rate = readMB / (duration / 1000.0);
-	std::cout << "read/written " << readMB << "/" << writeMB << " Mbytes in "
-	          << duration / 1000 << " s, "
+	double duration = std::chrono::duration<double>(diff).count();
+	double readMB = readBytes / (1000 * 1000);
+	double writeMB = writeBytes / (1000 * 1000);
+	double rate = readMB / duration;
+	std::cout << "read/written " << readMB << "/" << writeMB << " MB in " << duration << " s, "
 	          << rate << " MB/s, " << rate * 8 << " Mb/s" << std::endl;
 }
 

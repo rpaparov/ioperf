@@ -52,7 +52,7 @@ void startClient(std::string host, unsigned int port, unsigned int chunkSize, do
 
 	auto start = std::chrono::system_clock::now();
 	
-	// first let server know a transmission is about to start
+	// first let the server know a transmission is about to start (only if UDP is used)
 	if (isUdp) {
 		ssize_t n = write(sockfd, &STX, 1);
 		if (n < 0) {
@@ -62,7 +62,7 @@ void startClient(std::string host, unsigned int port, unsigned int chunkSize, do
 		}
 	}
 
-	size_t writeBytes = 0;
+	uint64_t writeBytes = 0;
 	for (size_t i = 0; i < nBlocks; i++) {
 		ssize_t n = write(sockfd, buffer.data(), chunkSize);
 		if (n < 0) {
@@ -95,14 +95,14 @@ void startClient(std::string host, unsigned int port, unsigned int chunkSize, do
 	auto end = std::chrono::system_clock::now();
 
 	auto diff = end - start;
-	double duration = std::chrono::duration<double, std::milli>(diff).count();
-	float writeMB = writeBytes / (1000 * 1000);
-	float rate = writeMB / (duration / 1000.0);
+	double duration = std::chrono::duration<double>(diff).count();
+	double writeMB = writeBytes / (1000 * 1000);
+	double rate = writeMB / duration;
 	unsigned long lostBytes = (sentGig * TRANSFER_SIZE) - writeBytes;
-	std::cout << "written " << writeMB << " Mbytes in "
-	          << duration / 1000 << " s, "
-	          << rate << " MB/s, " << rate * 8 << " Mb/s"
-	          << ", lost " << lostBytes << std::endl;
+	std::cout << "written " << writeMB << " MB in " << duration << " s, "
+	          << rate << " MB/s, " << rate * 8 << " Mb/s" << ", lost " << lostBytes
+	          << ", server " << inet_ntoa(serv_addr.sin_addr) << ":" << ntohs(serv_addr.sin_port)
+	          << std::endl;
 }
 
 
